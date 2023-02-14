@@ -2,6 +2,8 @@ import { createContext, useState, useEffect } from "react";
 import jwtDecode from "jwt-decode";
 
 export const AuthContext = createContext();
+
+// Custome Provider that returns global variables and functions
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState("");
   const [loading, setLoading] = useState(true);
@@ -9,18 +11,15 @@ export const AuthProvider = ({ children }) => {
 
   const updateToken = (token) => {
     const newToken = localStorage.setItem("token", token);
-
     setToken(newToken);
     setLoading(true);
   };
 
   useEffect(() => {
-    setLoading(false);
     const currentToken = localStorage.getItem("token");
     setToken(currentToken);
+    setLoading(false);
   }, [token]);
 
-  return (
-    <AuthContext.Provider value={{ token, user, updateToken, loading, setLoading }}>{children}</AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{ token, user, loading, updateToken }}>{children}</AuthContext.Provider>;
 };

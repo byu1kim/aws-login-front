@@ -1,4 +1,5 @@
 import "./App.css";
+import { useContext } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Home from "./routes/Home";
 import Login from "./routes/Login";
@@ -8,9 +9,10 @@ import Nav from "./components/Nav";
 import Restrict from "./routes/Restrict";
 import Notfound from "./routes/Notfound";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { AuthProvider } from "./components/AuthContext";
+import { AuthContext } from "./components/AuthContext";
 
 function App() {
+  const { token } = useContext(AuthContext);
   const router = createBrowserRouter([
     {
       path: "/",
@@ -19,11 +21,12 @@ function App() {
         { path: "/", element: <Home /> },
         {
           path: "/login",
-          element: <Login />,
+          element: token ? <Profile /> : <Login />,
         },
         {
           path: "/signup",
-          element: <Signup />,
+
+          element: token ? <Profile /> : <Signup />,
         },
         {
           path: "/profile",
@@ -38,11 +41,7 @@ function App() {
       ],
     },
   ]);
-  return (
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
-  );
+  return <RouterProvider router={router} />;
 }
 
 export default App;

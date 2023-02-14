@@ -4,10 +4,11 @@ import { AuthContext } from "./AuthContext";
 import { useNavigate } from "react-router-dom";
 
 // Handle forms : Sing Up, Edit Profile
-const Form = ({ formType, setEdit }) => {
+const Form = ({ formType }) => {
   const navigate = useNavigate();
-  const { token, user, updateToken, setLoading } = useContext(AuthContext);
+  const { token, user, updateToken } = useContext(AuthContext);
 
+  // Form inputs
   const [email, setEmail] = useState(user ? user.email : "");
   const [password, setPassword] = useState();
   const [profileImg, setProfileImg] = useState();
@@ -18,47 +19,35 @@ const Form = ({ formType, setEdit }) => {
 
   // Pass the form data to POST(Signup), PUT(Edit profile)
   const handleSubmit = async (e) => {
-    e.preventDefault(); // necessary
+    e.preventDefault();
     const formData = new FormData();
+    formData.append("username", username);
+    formData.append("email", email);
+    formData.append("password", password);
+    formData.append("profileImg", profileImg);
 
     // Case 1. Sign up
     if (formType === "signup") {
-      formData.append("username", username);
-      formData.append("email", email);
-      formData.append("password", password);
-      formData.append("profileImg", profileImg);
-
-      await axios.post("/api/signup", formData, {
-        header: { "Content-Type": "multipart/form-data" },
+      const signupUser = await axios.post("/api/signup", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
-
-      //fectch ( same as axios... and then add body:JOSN.stringfiy(Pemail, password {)}).then(res=>res.json())
-      // axios returns data. you have to refer the retunrn axios result.data
+      console.log(signupUser.data);
+      updateToken(signupUser.data);
 
       // Case 2. Edit Profile
     } else {
-      const updatedUser = await axios.put("/api/username", { username: username }, { headers: authHeader });
+      console.log(authHeader);
+      const updatedUser = await axios.put("/api/updateProfile", formData, {
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
+      });
 
       updateToken(updatedUser.data);
-      if (updatedUser.data) {
-        //        setLoading(true);
-        navigate("/profile");
-      }
-
-      //setUser(updatedUser.data);
-      //   if (profileImg) {
-      //     await axios.post("/api/signup", formData, {
-      //       header: {
-      //         headers: authHeader,
-      //         "Content-Type": "multipart/form-data",
-      //       },
-      //     });
-      //   }
+      navigate("/profile");
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="p-5 flex flex-col mx-auto max-w-xl bg-gray-200">
       <label htmlFor="username">Name</label>
       <input
         type="text"
@@ -90,9 +79,11 @@ const Form = ({ formType, setEdit }) => {
         ""
       )}
 
-      <label htmlFor="profileImg">Email</label>
+      <label htmlFor="profileImg">Profile Photo</label>
       <input type="file" name="profileImg" onChange={(e) => setProfileImg(e.target.files[0])} />
-      <button type="submit">{formType === "signup" ? "SingUp" : "Edit"}</button>
+      <button type="submit" className="bg-rose-200 w-40 m-3 mx-auto hover:cursor-pointer hover:bg-rose-400">
+        {formType === "signup" ? "SingUp" : "Edit"}
+      </button>
     </form>
   );
 };
